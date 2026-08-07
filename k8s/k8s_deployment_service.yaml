@@ -16,7 +16,7 @@ spec:
         app: devsecops
     spec:
       containers:
-      - image: sarvjeet908/udemy:latest
+      - image: sarvjeet908/udemy:2
         name: devsecops-container
 ---
 apiVersion: v1
@@ -24,12 +24,12 @@ kind: Service
 metadata:
   labels:
     app: devsecops
-  name: devsecops-svc
+    name: devsecops-svc
 spec:
-  ports:
-  - port: 8080
-    protocol: TCP
-    targetPort: 8080
   selector:
     app: devsecops
-  type: NodePort
+  type: LoadBalancer
+  ports:
+    - name: http
+      port: 80
+      targetPort: 8081
