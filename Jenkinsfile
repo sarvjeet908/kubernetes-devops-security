@@ -8,5 +8,10 @@ pipeline {
               archive 'target/*.jar' //so that they can be downloaded later sarvjeet
             }
         }   
+      stage('unit test') {
+            steps {
+              sh "mvn test" // we want to skiptest     second time checking    3rd      4th time   5th 
+            }
+        }
     }
 }
