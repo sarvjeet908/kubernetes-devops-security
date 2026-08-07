@@ -1,30 +1,29 @@
 apiVersion: apps/v1
 kind: Deployment
 metadata:
+  name: devsecops
   labels:
     app: devsecops
-  name: devsecops
 spec:
   replicas: 2
   selector:
     matchLabels:
       app: devsecops
-  strategy: {}
   template:
     metadata:
       labels:
         app: devsecops
     spec:
       containers:
-      - image: sarvjeet908/udemy:4
-        name: devsecops-container
+      - name: devsecops-container
+        image: sarvjeet908/udemy:4
 ---
-apiVersion: apps/v1
+apiVersion: v1
 kind: Service
 metadata:
+  name: devsecops-svc        # <-- moved here
   labels:
     app: devsecops
-    name: devsecops-svc
 spec:
   selector:
     app: devsecops
