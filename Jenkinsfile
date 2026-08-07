@@ -23,7 +23,7 @@ pipeline {
       stage("Docker Build & Push"){
             steps{
                 script{
-                   withDockerRegistry(credentialsId: 'docker-hub', toolName: 'docker'){   
+                   withDockerRegistry(credentialsId: 'docker-hub', toolName: 'docker'){   //what is this toolName: 'docker'  //this is the name of the docker installation in jenkins
                        sh "docker build -t sarvjeet908/udemy:1 ."
                        sh "docker push sarvjeet908/udemy:1"
                     }
