@@ -19,7 +19,7 @@ spec:
       - image: sarvjeet908/udemy:4
         name: devsecops-container
 ---
-apiVersion: v1
+apiVersion: apps/v1
 kind: Service
 metadata:
   labels:
