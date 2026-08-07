@@ -12,6 +12,12 @@ pipeline {
             steps {
               sh "mvn test" // we want to skiptest     second time checking    3rd      4th time   5th 
             }
-        }
+            post {
+            always {
+               junit 'target/surefire-reports/*.xml'
+               jacoco execPattern: 'target/jacoco.exec'
+              }
+            }
+      }
     }
 }
