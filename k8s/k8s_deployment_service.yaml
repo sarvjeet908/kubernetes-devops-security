@@ -16,7 +16,7 @@ spec:
         app: devsecops
     spec:
       containers:
-      - image: replace
+      - image: sarvjeet908/udemy:latest
         name: devsecops-container
 ---
 apiVersion: v1

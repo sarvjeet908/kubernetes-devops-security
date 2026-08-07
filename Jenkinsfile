@@ -25,11 +25,19 @@ pipeline {
                 script{
                    withDockerRegistry(credentialsId: 'docker-hub', toolName: 'docker'){   //what is this toolName: 'docker'  //this is the name of the docker installation in jenkins
                        sh "printenv"
-                       sh "docker build -t sarvjeet908/udemy:"${env.GIT_COMMIT}" ."
-                       sh "docker push sarvjeet908/udemy:"${env.GIT_COMMIT}"
+                       sh "docker build -t sarvjeet908/udemy:latest ."
+                       sh "docker push sarvjeet908/udemy:latest"
                     }
                 }
             }
         }
+
+      stage ("Deploy to eks  dev environment"){
+            steps{
+                script{
+                    sh "kubectl apply -f k8s/"
+                }
+            }
+        }  
     }
 }
