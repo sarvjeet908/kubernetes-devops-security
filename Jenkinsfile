@@ -35,6 +35,7 @@ pipeline {
       stage ("Deploy to eks  dev environment"){
             steps{
                 script{
+                    sh "kubectl delete -f /k8s"
                     sh "kubectl apply -f k8s/"
                 }
             }
