@@ -17,7 +17,21 @@ pipeline {
                                  fingerprint: true
             }
         }
-
+         stage("Sonarqube Analysis "){
+            steps{
+                withSonarQubeEnv('SonarQube') {
+                    sh ''' $SCANNER_HOME/bin/sonar-scanner -Dsonar.projectName=numeric-application \
+                    -Dsonar.projectKey=numeric-application '''
+                }
+            }
+        }
+        stage("quality gate"){
+           steps {
+                script {
+                    waitForQualityGate abortPipeline: false, credentialsId: 'sonar-token' 
+                }
+            } 
+        }
         stage('Unit Test') {
             steps {
                 sh 'mvn test'
