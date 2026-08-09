@@ -52,12 +52,6 @@ pipeline {
         stage('EKS Authentication') {
             steps {
                 sh '''
-                    echo "=== AWS Identity ==="
-                    aws sts get-caller-identity
-
-
-                    echo "=== Kubernetes Context ==="
-                    kubectl config current-context
 
                     echo "=== Test EKS ==="
                     kubectl get nodes
@@ -73,15 +67,6 @@ pipeline {
         sh '''
             echo "=== AWS Identity ==="
             aws sts get-caller-identity
-
-            echo "=== Configure EKS kubeconfig ==="
-            aws eks update-kubeconfig \
-                --region "$AWS_DEFAULT_REGION" \
-                --name "$CLUSTER_NAME"
-
-            echo "=== Verify Kubernetes ==="
-            kubectl config current-context
-            kubectl get nodes
 
             echo "=== Deploy ==="
             kubectl apply -f k8s/
