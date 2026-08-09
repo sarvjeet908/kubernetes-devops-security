@@ -23,11 +23,11 @@ pipeline {
   steps {
     withCredentials([string(credentialsId: 'sonar-token', variable: 'SONAR_TOKEN')]) {
       sh """
-        mvn sonar:sonar \
-          -Dsonar.projectKey=numeric-application \
-          -Dsonar.host.url=http://54.205.195.131:9000/ \
-          -Dsonar.login=\$SONAR_TOKEN
-      """
+  mvn org.sonarsource.scanner.maven:sonar-maven-plugin:3.9.1.2184:sonar \
+    -Dsonar.projectKey=numeric-application \
+    -Dsonar.host.url=http://54.205.195.131:9000/ \
+    -Dsonar.login=\$SONAR_TOKEN
+"""
     }
   }
 }
