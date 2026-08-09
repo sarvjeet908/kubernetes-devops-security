@@ -1,45 +1,81 @@
 pipeline {
-  agent any
 
-  stages {
-      stage('Build Artifact') {
+    agent any
+
+    environment {
+        AWS_DEFAULT_REGION = 'us-east-1'
+        CLUSTER_NAME = 'sarvjeet908-cluster-run'
+    }
+
+    stages {
+
+        stage('Build Artifact') {
             steps {
-              sh "mvn clean package -DskipTests=true" // we want to skiptest     second time checking    3rd      4th time   5th 
-              archive 'target/*.jar' //so that they can be downloaded later sarvjeet
+                sh 'mvn clean package -DskipTests=true'
+
+                archiveArtifacts artifacts: 'target/*.jar',
+                                 fingerprint: true
             }
-        }   
-      stage('unit test') {
+        }
+
+        stage('Unit Test') {
             steps {
-              sh "mvn test" // we want to skiptest     second time checking    3rd      4th time   5th 
+                sh 'mvn test'
             }
+
             post {
-            always {
-               junit 'target/surefire-reports/*.xml'
-               jacoco execPattern: 'target/jacoco.exec'
-              }
-            }
-      }
+                always {
+                    junit 'target/surefire-reports/*.xml'
 
-      stage("Docker Build & Push"){
-            steps{
-                script{
-                   withDockerRegistry(credentialsId: 'docker-hub', toolName: 'docker'){   //what is this toolName: 'docker'  //this is the name of the docker installation in jenkins
-                       sh "printenv"
-                       sh "docker build -t sarvjeet908/rammayan:5 ."
-                       sh "docker push sarvjeet908/rammayan:5"
+                    jacoco execPattern: 'target/jacoco.exec'
+                }
+            }
+        }
+
+        stage('Docker Build & Push') {
+            steps {
+                script {
+
+                    withDockerRegistry(
+                        credentialsId: 'docker-hub',
+                        toolName: 'docker'
+                    ) {
+
+                        sh 'docker build -t sarvjeet908/rammayan:5 .'
+
+                        sh 'docker push sarvjeet908/rammayan:5'
                     }
                 }
             }
         }
 
-      stage ("Deploy to eks  dev environment"){
-            steps{
-                script{
-                    sh "kubectl apply -f k8s/"
-                }
-            }
-        }  
-    }
+        stage('EKS Authentication') {
+            steps {
+                sh '''
+                    echo "=== AWS Identity ==="
+                    aws sts get-caller-identity
 
-    //it took days two fix one issue with creds but fixed it finally///jjjjjj
+                    echo "=== Configure kubeconfig ==="
+                    aws eks update-kubeconfig \
+                        --region "$AWS_DEFAULT_REGION" \
+                        --name "$CLUSTER_NAME"
+
+                    echo "=== Kubernetes Context ==="
+                    kubectl config current-context
+
+                    echo "=== Test EKS ==="
+                    kubectl get nodes
+
+                    echo "=== Test Authorization ==="
+                    kubectl auth can-i get pods --all-namespaces
+                '''
+            }
+        }
+
+        stage('Deploy to EKS - Dev') {
+            steps {
+                sh 'kubectl apply -f k8s/'
+            }
+        }
+    }
 }
