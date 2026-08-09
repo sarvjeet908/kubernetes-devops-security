@@ -1,4 +1,4 @@
-# Use Eclipse Temurin (official OpenJDK builds)-----
+# Use Eclipse Temurin (official OpenJDK builds)----- -----
 FROM eclipse-temurin:8-jdk-alpine
 
 EXPOSE 8080
