@@ -4,7 +4,7 @@ pipeline {
 
     environment {
         AWS_DEFAULT_REGION = 'us-east-1'
-        CLUSTER_NAME = 'sarvjeet908-cluster-run'
+        CLUSTER_NAME = 'sarvjeet-cluster-run'
     }
 
     stages {
