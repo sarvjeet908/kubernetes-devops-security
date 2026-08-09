@@ -55,10 +55,6 @@ pipeline {
                     echo "=== AWS Identity ==="
                     aws sts get-caller-identity
 
-                    echo "=== Configure kubeconfig ==="
-                    aws eks update-kubeconfig \
-                        --region "$AWS_DEFAULT_REGION" \
-                        --name "$CLUSTER_NAME"
 
                     echo "=== Kubernetes Context ==="
                     kubectl config current-context
