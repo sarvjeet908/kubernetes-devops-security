@@ -17,16 +17,7 @@ pipeline {
                                  fingerprint: true
             }
         }
-       stage('Sonarqube Analysis') {
-  steps {
-    withSonarQubeEnv('sonar') {  // name of your SonarQube server config, not the scanner
-      script {
-        def scannerHome = tool 'sonar-scanner'  // must match the Name field exactly
-        sh "${scannerHome}/bin/sonar-scanner -Dsonar.projectName=numeric-application -Dsonar.projectKey=numeric-application"
-      }
-    }
-  }
-}
+ 
      
         stage('SonarQube - SAST') {
   steps {
