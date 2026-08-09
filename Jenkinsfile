@@ -52,6 +52,7 @@ pipeline {
         stage('EKS Authentication') {
             steps {
                 sh '''
+                    aws eks update-kubeconfig --name $CLUSTER_NAME --region $AWS_DEFAULT_REGION
 
                     echo "=== Test EKS ==="
                     kubectl get nodes
@@ -63,15 +64,17 @@ pipeline {
         }
 
         stage('Deploy to EKS - Dev') {
-    steps {
-        sh '''
-            echo "=== AWS Identity ==="
-            aws sts get-caller-identity
+            steps {
+                sh '''
+                    aws eks update-kubeconfig --name $CLUSTER_NAME --region $AWS_DEFAULT_REGION
 
-            echo "=== Deploy ==="
-            kubectl apply -f k8s/
-        '''
-    }
-}
+                    echo "=== AWS Identity ==="
+                    aws sts get-caller-identity
+
+                    echo "=== Deploy ==="
+                    kubectl apply -f k8s/
+                '''
+            }
+        }
     }
 }
