@@ -25,6 +25,12 @@ pipeline {
                 }
             }
         }
+        stage('SonarQube - SAST') {
+      steps {
+        sh "mvn sonar:sonar -Dsonar.projectKey=numeric-application -Dsonar.host.url=http://54.205.195.131:9000/ -Dsonar.login=squ_d9a7903c312dfbbd4dd1ed67edd2c375cce6e26c"
+      }
+    }
+
         stage("quality gate"){
            steps {
                 script {
