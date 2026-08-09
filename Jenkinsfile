@@ -25,8 +25,8 @@ pipeline {
                 script{
                    withDockerRegistry(credentialsId: 'docker-hub', toolName: 'docker'){   //what is this toolName: 'docker'  //this is the name of the docker installation in jenkins
                        sh "printenv"
-                       sh "docker build -t sarvjeet908/udemy:4 ."
-                       sh "docker push sarvjeet908/udemy:4"
+                       sh "docker build -t sarvjeet908/udemy:5 ."
+                       sh "docker push sarvjeet908/udemy:5"
                     }
                 }
             }
