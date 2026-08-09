@@ -35,9 +35,11 @@ pipeline {
       stage ("Deploy to eks  dev environment"){
             steps{
                 script{
-                    sh "kubectl apply -f k8s/"
+                    sh "kubectl delete -f k8s/"
                 }
             }
         }  
     }
+
+    //it took days two fix one issue with creds but fixed it finally
 }
