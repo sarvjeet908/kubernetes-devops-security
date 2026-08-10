@@ -23,7 +23,7 @@ pipeline {
                 sh "mvn org.pitest:pitest-maven:mutationCoverage"
             }
         }
-         stage('SonarQube - SAST-1') {
+         stage('SonarQube - SAST-11') {
             steps {
                 withCredentials([string(credentialsId: 'sonar-token', variable: 'SONAR_TOKEN')]) {
                     sh """
