@@ -33,22 +33,25 @@ pipeline {
                   -Dsonar.login=\$SONAR_TOKEN
                  """
                 }
-            }
-            timeout(time: 2, unit: 'MINUTES') {
+                timeout(time: 2, unit: 'MINUTES') {
                     script {
                         waitForQualityGate abortPipeline: true
                     }
                 }
+            }
+            
         }
         stage('Vulnerability Scan - Docker ') {
             steps {
                 sh "mvn dependency-check:check"
-            }
-            timeout(time: 2, unit: 'MINUTES') {
+
+                timeout(time: 2, unit: 'MINUTES') {
                     script {
                         waitForQualityGate abortPipeline: true
                     }
                 }
+            }
+            
            
         }
         stage('Docker Build & Push') {
