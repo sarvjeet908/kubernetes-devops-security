@@ -49,7 +49,7 @@ pipeline {
                 dependencyCheckPublisher pattern: '**/dependency-check-report.xml'
            }
         }
-        stage('Docker Build & Push') {
+        stage('Docker Build && Push') {
             steps {
                 script {
                     withDockerRegistry(
