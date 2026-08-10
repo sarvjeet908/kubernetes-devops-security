@@ -29,7 +29,7 @@ pipeline {
                     sh """
                   mvn org.sonarsource.scanner.maven:sonar-maven-plugin:3.9.1.2184:sonar \
                   -Dsonar.projectKey=numeric-application \
-                  -Dsonar.host.url=http://54.215.232.91:9000/ \
+                  -Dsonar.host.url=http://localhost:9000/ \
                   -Dsonar.login=\$SONAR_TOKEN
                  """
                 }
