@@ -24,23 +24,26 @@ pipeline {
             }
         }
         stage('SonarQube - SAST') {
-            steps {
-                withCredentials([string(credentialsId: 'sonar-token', variable: 'SONAR_TOKEN')]) {
-                    sh """
-                  mvn org.sonarsource.scanner.maven:sonar-maven-plugin:3.9.1.2184:sonar \
-                  -Dsonar.projectKey=numeric-application \
-                  -Dsonar.host.url=http://54.205.195.131:9000/ \
-                  -Dsonar.login=\$SONAR_TOKEN
-                 """
-                }
-                timeout(time: 2, unit: 'MINUTES') {
-                    script {
-                        waitForQualityGate abortPipeline: true
-                    }
-                }
-            }
-            
+      steps {
+        withSonarQubeEnv('SonarServer') {
+          sh "mvn sonar:sonar \
+		              -Dsonar.projectKey=numeric-application \
+		              -Dsonar.host.url=http://54.205.195.131:9000/"
         }
+        timeout(time: 2, unit: 'MINUTES') {
+          script {
+            waitForQualityGate abortPipeline: true
+          }
+        }
+      }
+    }
+
+    stage('Vulnerability Scan - Docker ') {
+      steps {
+        sh "mvn dependency-check:check"
+      }
+    }
+
         stage('Vulnerability Scan - Docker ') {
             steps {
                 sh "mvn dependency-check:check"
