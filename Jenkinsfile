@@ -49,19 +49,30 @@ pipeline {
                 dependencyCheckPublisher pattern: '**/dependency-check-report.xml'
            }
         }
-        stage('Docker Build && Push') {
-            steps {
-                script {
-                    withDockerRegistry(
-                        credentialsId: 'docker-hub',
-                        toolName: 'docker'
-                    ) {
-                        sh 'docker build -t sarvjeet908/rammayan:6 .'
-                        sh 'docker push sarvjeet908/rammayan:6'
-                    }
-                }
-            }
+     
+        stage('Docker Build & Push') {
+    steps {
+        withCredentials([
+            usernamePassword(
+                credentialsId: 'docker-hub',
+                usernameVariable: 'DOCKER_USER',
+                passwordVariable: 'DOCKER_PASSWORD'
+            )
+        ]) {
+            sh '''
+                echo "$DOCKER_PASSWORD" | docker login \
+                    --username "$DOCKER_USER" \
+                    --password-stdin
+
+                docker build -t sarvjeet908/rammayan:5 .
+                docker push sarvjeet908/rammayan:5
+
+                docker logout
+            '''
         }
+    }
+}
+
         stage('EKS Authentication') {
             steps {
                 sh '''
