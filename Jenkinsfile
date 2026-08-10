@@ -19,25 +19,8 @@ pipeline {
         }
  
      
-        
-stage('Vulnerability Scan - Docker ') {
-      steps {
-        sh "mvn dependency-check:check"
-      }
-      post {
-        always {
-          dependencyCheckPublisher pattern: 'target/dependency-check-report.xml'
-        }
-      }
-    }
-
-        stage("quality gate"){
-           steps {
-                script {
-                    waitForQualityGate abortPipeline: false, credentialsId: 'sonar-token' 
-                }
-            } 
-        }
+  
+  
         stage('Unit Test') {
             steps {
                 sh 'mvn test'
@@ -51,6 +34,30 @@ stage('Vulnerability Scan - Docker ') {
                 }
             }
         }
+
+              stage('SonarQube - SAST') {
+  steps {
+    withCredentials([string(credentialsId: 'sonar-token', variable: 'SONAR_TOKEN')]) {
+      sh """
+  mvn org.sonarsource.scanner.maven:sonar-maven-plugin:3.9.1.2184:sonar \
+    -Dsonar.projectKey=numeric-application \
+    -Dsonar.host.url=http://54.205.195.131:9000/ \
+    -Dsonar.login=\$SONAR_TOKEN
+"""
+    }
+  }
+}
+stage('Vulnerability Scan - Docker ') {
+      steps {
+        sh "mvn dependency-check:check"
+      }
+      post {
+        always {
+          dependencyCheckPublisher pattern: 'target/dependency-check-report.xml'
+        }
+      }
+    }
+
 
         stage('Docker Build & Push') {
             steps {
