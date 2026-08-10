@@ -24,16 +24,21 @@ pipeline {
             }
         }
         stage('SonarQube - SAST') {
-      steps {
-        withSonarQubeEnv('SonarServer') {
-          sh "mvn -X org.sonarsource.scanner.maven:sonar-maven-plugin:3.9.1.2184:sonar \
-		              -Dsonar.projectKey=numeric-application \
-		              -Dsonar.host.url=http://54.205.195.131:9000/"
-        }
-        
-      }
-    }
+    steps {
+        timeout(time: 10, unit: 'MINUTES') {
 
+            withSonarQubeEnv('SonarServer') {
+                sh '''
+                    mvn -X org.sonarsource.scanner.maven:sonar-maven-plugin:3.9.1.2184:sonar \
+                      -Dsonar.projectKey=numeric-application \
+                      -Dsonar.host.url=http://54.215.232.91:9000
+                '''
+            }
+
+            waitForQualityGate abortPipeline: true
+        }
+    }
+}
 
        
 
