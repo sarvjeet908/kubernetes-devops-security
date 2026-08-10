@@ -30,7 +30,7 @@ pipeline {
 		              -Dsonar.projectKey=numeric-application \
 		              -Dsonar.host.url=http://54.205.195.131:9000/"
         }
-        timeout(time: 10, unit: 'MINUTES') {
+        timeout(time: 2, unit: 'MINUTES') {
           script {
             waitForQualityGate abortPipeline: true
           }
@@ -41,7 +41,7 @@ pipeline {
 
         stage('Vulnerability Scan - Docker ') {
             steps {
-                sh "mvn dependency-check:check"
+                sh "mvn org.owasp:dependency-check-maven:check"
 
                 timeout(time: 2, unit: 'MINUTES') {
                     script {
