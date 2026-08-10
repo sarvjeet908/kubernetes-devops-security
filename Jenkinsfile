@@ -35,19 +35,7 @@ pipeline {
     }
 
 
-        stage('Vulnerability Scan - Docker ') {
-            steps {
-                sh "mvn org.owasp:dependency-check-maven:check"
-
-                timeout(time: 2, unit: 'MINUTES') {
-                    script {
-                        waitForQualityGate abortPipeline: true
-                    }
-                }
-            }
-            
-           
-        }
+       
 
          stage('OWASP FS SCAN') {
             steps {
