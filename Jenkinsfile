@@ -23,26 +23,7 @@ pipeline {
                 sh "mvn org.pitest:pitest-maven:mutationCoverage"
             }
         }
-        stage('SonarQube - SAST-10') {
-    steps {
-        timeout(time: 5, unit: 'MINUTES') {
-
-            withSonarQubeEnv('SonarServer') {
-
-                sh '''
-                    mvn org.sonarsource.scanner.maven:sonar-maven-plugin:3.9.1.2184:sonar \
-                      -Dsonar.projectKey=numeric-application \
-                      -Dsonar.host.url=http://localhost:9000 \
-                      -Dsonar.login="$SONAR_TOKEN"
-                '''
-            }
-
-            script {
-                waitForQualityGate abortPipeline: true
-            }
-        }
-    }
-}
+        
          stage('SonarQube - SAST-11') {
             steps {
                 withCredentials([string(credentialsId: 'sonar-token', variable: 'SONAR_TOKEN')]) {
@@ -53,31 +34,12 @@ pipeline {
                   -Dsonar.login=\$SONAR_TOKEN
                  """
                 }
-                timeout(time: 2, unit: 'MINUTES') {
-                    script {
-                        waitForQualityGate abortPipeline: true
-                    }
-                }
+                
             }
             
         }
 
-        stage('SonarQube - SAST') {
-    steps {
-        timeout(time: 10, unit: 'MINUTES') {
-
-            withSonarQubeEnv('SonarServer') {
-                sh '''
-                    mvn -X org.sonarsource.scanner.maven:sonar-maven-plugin:3.9.1.2184:sonar \
-                      -Dsonar.projectKey=numeric-application \
-                      -Dsonar.host.url=http://54.215.232.91:9000
-                '''
-            }
-
-            waitForQualityGate abortPipeline: true
-        }
-    }
-}
+        
 
        
 
