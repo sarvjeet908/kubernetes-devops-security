@@ -52,10 +52,17 @@ pipeline {
 
          stage('TRIVY FS SCAN and opa-conf-test') {
             steps {
-                sh "trivy fs . > trivyfs.txt"
-                "OPA Conftest": {
-                sh 'docker run --rm -v $(pwd):/project openpolicyagent/conftest test --policy opa-k8s-security.rego Dockerfile'
-                }
+                parallel (
+                    
+                    "TRIVY FS SCAN": {
+                        sh "trivy fs . > trivyfs.txt"
+                    },
+                    "OPA Conftest": {
+                        sh 'docker run --rm -v $(pwd):/project openpolicyagent/conftest test --policy opa-k8s-security.rego Dockerfile'
+                    }
+                )
+               
+                
             }
             
 
