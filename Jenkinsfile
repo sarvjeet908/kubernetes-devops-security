@@ -1,8 +1,8 @@
 pipeline {
     agent any
     environment {
-        AWS_DEFAULT_REGION = 'us-east-1'
-        CLUSTER_NAME = 'sarvjeet-cluster-run'
+        AWS_DEFAULT_REGION = 'us-west-1'
+        CLUSTER_NAME = 'my-eks-cluster'
     }
     stages {
         stage('Build Artifact') {
