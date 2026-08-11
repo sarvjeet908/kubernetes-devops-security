@@ -284,13 +284,26 @@ pipeline {
     }
     }
                 
+    stage('OWASP-ZAP'){
+        steps {
+            
+        echo "=== Running OWASP-ZAP Tests ==="
 
+                sh '''
+                    chmod +x zap.sh
+                    bash zap.sh
+                '''
+
+                echo "=== OWASP-ZAP Tests Passed ==="
+        
+     }
+
+    }
+}
+post {
     // =============================================================
     // POST ACTIONS
     // =============================================================
-    
-}
-post {
 
         always {
 
