@@ -6,6 +6,11 @@ pipeline {
         AWS_DEFAULT_REGION = 'us-west-1'
         CLUSTER_NAME       = 'my-eks-cluster'
         IMAGE_NAME         = "sarvjeet908/devsecops-image:${BUILD_NUMBER}"
+        deploymentName = "devsecops"
+        containerName = "devsecops-container"
+        serviceName = "devsecops-svc"
+        applicationURL = "http://54.151.74.249/"
+        applicationURI = "/increment/99"
     }
 
     stages {
@@ -241,6 +246,43 @@ pipeline {
             }
         }
     }
+
+    //=============================================================
+    //integration test
+    //=============================================================
+
+    stage('Integration Tests - DEV') {
+      steps {
+        script {
+          try {
+              echo "=== Running Integration Tests ==="
+
+                sh '''
+                    chmod +x integration-test.sh
+                    bash integration-test.sh
+                '''
+
+                echo "=== Integration Tests Passed ==="
+          }catch (e) {
+
+                echo "=== Integration Tests FAILED ==="
+                echo "Rolling back deployment..."
+
+                sh """
+                    kubectl rollout undo deployment/${deploymentName} \
+                        -n default
+
+                    kubectl rollout status deployment/${deploymentName} \
+                        -n default \
+                        --timeout=120s
+                """
+
+                throw e
+            }
+        }
+      }
+    }
+                
 
     // =============================================================
     // POST ACTIONS
