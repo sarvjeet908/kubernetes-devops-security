@@ -73,7 +73,8 @@ pipeline {
             }
         }
         stage('kube-scan && TRIVY image Scan') {
-            parallel (
+            steps {
+                parallel (
                 "trivy-image-scan" : {
                     sh "trivy image sarvjeet908/rammayan:5 > trivyimage.txt"
                 },
@@ -81,6 +82,8 @@ pipeline {
                     sh "kube-scan.sh"
                 }
             )
+            }
+            
         }
         stage('EKS Authentication') {
             steps {
