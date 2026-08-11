@@ -323,6 +323,7 @@ post {
             dependencyCheckPublisher(
                 pattern: 'target/dependency-check-report.xml'
             )
+            publishHTML([allowMissing: false, alwaysLinkToLastBuild: false, icon: '', keepAll: false, reportDir: 'owasp-zap-report', reportFiles: 'zap_report.html', reportName: 'HTML Report', reportTitles: 'OWASP ZAP HTML', useWrapperFileDirectly: true])
         }
 
         success {
