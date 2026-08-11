@@ -19,7 +19,7 @@ spec:
     spec:
       serviceAccountName: default
       containers:
-      - image: replace
+      - image: sarvjeet908/devsecops-image:52
         name: devsecops-container
         securityContext:
           runAsNonRoot: true
