@@ -58,7 +58,7 @@ pipeline {
                         sh "trivy fs . > trivyfs.txt"
                     },
                     "OPA Conftest": {
-                        sh 'docker run --rm -v $(pwd):/project openpolicyagent/conftest test --policy opa-k8s-security.rego k8s_deployment_service.yaml'
+                        sh 'docker run --rm -v $(pwd):/project openpolicyagent/conftest test --policy opa-k8s-security.rego /k8s/k8s_deployment_service.yaml'
                     }
                 )
                
