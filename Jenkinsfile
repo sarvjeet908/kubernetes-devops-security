@@ -251,11 +251,11 @@ pipeline {
     //integration test
     //=============================================================
 
-    stage('Integration Tests - DEV') {
-      steps {
+   stage('Integration Tests - DEV') {
+    steps {
         script {
-          try {
-              echo "=== Running Integration Tests ==="
+            try {
+                echo "=== Running Integration Tests ==="
 
                 sh '''
                     chmod +x integration-test.sh
@@ -263,7 +263,8 @@ pipeline {
                 '''
 
                 echo "=== Integration Tests Passed ==="
-          }catch (e) {
+
+            } catch (e) {
 
                 echo "=== Integration Tests FAILED ==="
                 echo "Rolling back deployment..."
@@ -280,8 +281,8 @@ pipeline {
                 throw e
             }
         }
-      }
     }
+}
                 
 
     // =============================================================
