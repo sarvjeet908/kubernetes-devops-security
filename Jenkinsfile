@@ -16,15 +16,13 @@ pipeline {
             steps {
                 sh 'mvn test'
             }
-            
         }
-         stage('Mutation Tests - PIT') {
+        stage('Mutation Tests - PIT') {
             steps {
                 sh "mvn org.pitest:pitest-maven:mutationCoverage"
             }
         }
-        
-         stage('SonarQube - SAST-11') {
+        stage('SonarQube - SAST-11') {
             steps {
                 withCredentials([string(credentialsId: 'sonar-token', variable: 'SONAR_TOKEN')]) {
                     sh """
@@ -34,49 +32,34 @@ pipeline {
                   -Dsonar.login=\$SONAR_TOKEN
                  """
                 }
-                
             }
-            
         }
-
-        
-
-       
-
-         
-
-         stage('TRIVY FS SCAN and opa-conf-test-scan') {
+        stage('TRIVY FS SCAN and opa-conf-test-scan') {
             steps {
                 parallel (
-                    
                     "TRIVY FS SCAN": {
                         sh "trivy fs . > trivyfs.txt"
                     },
                     "Owasp Dependency Check": {
                         dependencyCheck additionalArguments: '--scan ./ --disableYarnAudit --disableNodeAudit --nvdApiKey   7BA36ED4-9794-F111-8371-0EBF96DE670D', odcInstallation: 'DC'
-                dependencyCheckPublisher pattern: '**/dependency-check-report.xml'
+                        dependencyCheckPublisher pattern: '**/dependency-check-report.xml'
                     },
                     "OPA Conftest": {
                         sh 'docker run --rm -v $(pwd):/project openpolicyagent/conftest test --policy opa-k8s-security.rego k8s_deployment_service.yaml'
                     }
                 )
-               
-                
             }
-            
-
         }
-     
         stage('Docker Build & Push') {
-    steps {
-        withCredentials([
-            usernamePassword(
-                credentialsId: 'docker-hub',
-                usernameVariable: 'DOCKER_USER',
-                passwordVariable: 'DOCKER_PASSWORD'
-            )
-        ]) {
-            sh '''
+            steps {
+                withCredentials([
+                    usernamePassword(
+                        credentialsId: 'docker-hub',
+                        usernameVariable: 'DOCKER_USER',
+                        passwordVariable: 'DOCKER_PASSWORD'
+                    )
+                ]) {
+                    sh '''
                 echo "$DOCKER_PASSWORD" | docker login \
                     --username "$DOCKER_USER" \
                     --password-stdin
@@ -86,10 +69,19 @@ pipeline {
 
                 docker logout
             '''
+                }
+            }
         }
-    }
-}
-
+        stage('kube-scan && TRIVY image Scan'){
+            parallel(
+                "trivy-image-scan" : {
+                    sh "trivy image sarvjeet908/rammayan:5 > trivyimage.txt"
+                },
+                "kubesec.io - scan" : {
+                    sh "kube-scan.sh"
+                }
+            )
+        }
         stage('EKS Authentication') {
             steps {
                 sh '''
@@ -117,7 +109,7 @@ pipeline {
             }
         }
     }
-       post {
+    post {
         always {
             junit 'target/surefire-reports/*.xml'
             jacoco execPattern: 'target/jacoco.exec'
