@@ -5,6 +5,7 @@ pipeline {
         CLUSTER_NAME = 'my-eks-cluster'
         IMAGE_NAME = 'sarvjeet908/devsecops-image'
         IMAGE_TAG = "${BUILD_NUMBER}"
+        imageName = $IMAGE_NAME:$IMAGE_TAG
     }
     stages {
         stage('Build Artifact') {
@@ -109,7 +110,7 @@ pipeline {
 
                     echo "=== AWS Identity ==="
                     aws sts get-caller-identity
-
+                    sh "sed -i 's#replace#sarvjeet908/devsecops-image:${BUILD_NUMBER}#g' k8s_deployment_service.yaml"
                     echo "=== Deploy ==="
                     kubectl apply -f k8s_deployment_service.yaml
                 '''
