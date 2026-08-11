@@ -3,7 +3,7 @@ pipeline {
     environment {
         AWS_DEFAULT_REGION = 'us-west-1'
         CLUSTER_NAME = 'my-eks-cluster'
-        imageName = 'sarvjeet908/devsecops-image':"${BUILD_NUMBER}"
+        imageName = "sarvjeet908/devsecops-image:${BUILD_NUMBER}"
     }
     stages {
         stage('Build Artifact') {
