@@ -72,7 +72,7 @@ pipeline {
                 }
             }
         }
-        stage('kube-scan && TRIVY image Scan'){
+        stage('kube-scan && TRIVY image Scan') {
             parallel (
                 "trivy-image-scan" : {
                     sh "trivy image sarvjeet908/rammayan:5 > trivyimage.txt"
