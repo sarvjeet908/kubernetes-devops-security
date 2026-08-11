@@ -5,12 +5,14 @@ sleep 10
 PORT=$(kubectl -n default get svc "$serviceName" -o json | jq -r '.spec.ports[0].nodePort')
 
 echo "PORT: $PORT"
-echo "URL: $applicationURL:$PORT/$applicationURI"
+
+URL="$applicationURL:$PORT/$applicationURI"
+
+echo "URL: $URL"
 
 if [[ -n "$PORT" ]]; then
 
-    result=$(curl -s -w "\n%{http_code}" \
-        "$applicationURL:$PORT$applicationURI")
+    result=$(curl -s -w "\n%{http_code}" "$URL")
 
     response=$(echo "$result" | head -n1)
     http_code=$(echo "$result" | tail -n1)
