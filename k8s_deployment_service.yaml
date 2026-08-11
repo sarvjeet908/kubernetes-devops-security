@@ -1,5 +1,4 @@
-#################################### Updated k8s_deployment_service.yaml #################################### 
-
+######################### update existing k8s_deployment_service.yaml #########################
 apiVersion: apps/v1
 kind: Deployment
 metadata:
@@ -17,10 +16,16 @@ spec:
       labels:
         app: devsecops
     spec:
+      volumes:
+      - name: vol
+        emptyDir: {}
       serviceAccountName: default
       containers:
-      - image: sarvjeet908/devsecops-image:52
+      - image: sarvjeet908/devsecops-image:53
         name: devsecops-container
+        volumeMounts:
+        - mountPath: /tmp
+          name: vol
         securityContext:
           runAsNonRoot: true
           runAsUser: 100
@@ -40,5 +45,6 @@ spec:
   selector:
     app: devsecops
   type: NodePort
+######################### update existing k8s_deployment_service.yaml #########################
 
-#################################### Updated k8s_deployment_service.yaml #################################### 
+
