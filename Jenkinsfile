@@ -112,7 +112,7 @@ pipeline {
                     aws sts get-caller-identity
 
                     echo "=== Deploy ==="
-                    kubectl apply -f k8s/
+                    kubectl apply -f k8s_deployment_service.yaml
                 '''
             }
         }
