@@ -3,9 +3,7 @@ pipeline {
     environment {
         AWS_DEFAULT_REGION = 'us-west-1'
         CLUSTER_NAME = 'my-eks-cluster'
-        IMAGE_NAME = 'sarvjeet908/devsecops-image'
-        IMAGE_TAG = "${BUILD_NUMBER}"
-        imageName = $IMAGE_NAME:$IMAGE_TAG
+        imageName = 'sarvjeet908/devsecops-image':"${BUILD_NUMBER}"
     }
     stages {
         stage('Build Artifact') {
@@ -67,8 +65,8 @@ pipeline {
                     --username "$DOCKER_USER" \
                     --password-stdin
 
-                docker build -t $IMAGE_NAME:$IMAGE_TAG .
-                docker push $IMAGE_NAME:$IMAGE_TAG
+                docker build -t $imageName .
+                docker push $imageName
 
                 docker logout
             '''
