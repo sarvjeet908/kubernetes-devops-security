@@ -3,6 +3,8 @@ pipeline {
     environment {
         AWS_DEFAULT_REGION = 'us-west-1'
         CLUSTER_NAME = 'my-eks-cluster'
+        IMAGE_NAME = 'sarvjeet908/devsecops-image'
+        IMAGE_TAG = "${BUILD_NUMBER}"
     }
     stages {
         stage('Build Artifact') {
@@ -64,8 +66,8 @@ pipeline {
                     --username "$DOCKER_USER" \
                     --password-stdin
 
-                docker build -t sarvjeet908/rammayan:5 .
-                docker push sarvjeet908/rammayan:5
+                docker build -t $IMAGE_NAME:$IMAGE_TAG .
+                docker push $IMAGE_NAME:$IMAGE_TAG
 
                 docker logout
             '''
@@ -76,7 +78,7 @@ pipeline {
             steps {
                 parallel(
                     "trivy-image-scan": {
-                        sh "trivy image sarvjeet908/rammayan:5 > trivyimage.txt"
+                        sh "trivy image  $IMAGE_NAME:$IMAGE_TAG > trivyimage.txt"
                     },
                     "kubesec.io - scan": {
                         sh '''
