@@ -1,61 +1,125 @@
 pipeline {
+
     agent any
+
     environment {
         AWS_DEFAULT_REGION = 'us-west-1'
-        CLUSTER_NAME = 'my-eks-cluster'
-        imageName = "sarvjeet908/devsecops-image:${BUILD_NUMBER}"
+        CLUSTER_NAME       = 'my-eks-cluster'
+        IMAGE_NAME         = "sarvjeet908/devsecops-image:${BUILD_NUMBER}"
     }
+
     stages {
+
+        // =========================================================
+        // 1. CHECKOUT
+        // =========================================================
         stage('Checkout') {
             steps {
                 checkout scm
             }
         }
+
+        // =========================================================
+        // 2. BUILD
+        // =========================================================
         stage('Build Artifact') {
             steps {
                 sh 'mvn clean package -DskipTests=true'
-                archiveArtifacts artifacts: 'target/*.jar',
-                fingerprint: true
+
+                archiveArtifacts(
+                    artifacts: 'target/*.jar',
+                    fingerprint: true
+                )
             }
         }
+
+        // =========================================================
+        // 3. UNIT TEST
+        // =========================================================
         stage('Unit Test') {
             steps {
                 sh 'mvn test'
             }
         }
+
+        // =========================================================
+        // 4. MUTATION TESTING
+        // =========================================================
         stage('Mutation Tests - PIT') {
             steps {
-                sh "mvn org.pitest:pitest-maven:mutationCoverage"
+                sh 'mvn org.pitest:pitest-maven:mutationCoverage'
             }
         }
-        stage('SonarQube - SAST-11') {
+
+        // =========================================================
+        // 5. SONARQUBE / SAST
+        // =========================================================
+        stage('SonarQube - SAST') {
             steps {
-                withCredentials([string(credentialsId: 'sonar-token', variable: 'SONAR_TOKEN')]) {
-                    sh """
-                  mvn org.sonarsource.scanner.maven:sonar-maven-plugin:3.9.1.2184:sonar \
-                  -Dsonar.projectKey=numeric-application \
-                  -Dsonar.host.url=http://localhost:9000/ \
-                  -Dsonar.login=\$SONAR_TOKEN
-                 """
+                withCredentials([
+                    string(
+                        credentialsId: 'sonar-token',
+                        variable: 'SONAR_TOKEN'
+                    )
+                ]) {
+                    sh '''
+                        mvn org.sonarsource.scanner.maven:sonar-maven-plugin:3.9.1.2184:sonar \
+                            -Dsonar.projectKey=numeric-application \
+                            -Dsonar.host.url=http://localhost:9000/ \
+                            -Dsonar.login="$SONAR_TOKEN"
+                    '''
                 }
             }
         }
-        stage('TRIVY FS SCAN and opa-conf-test-scan') {
-            steps {
-                parallel (
-                    "TRIVY FS SCAN": {
-                        sh "trivy fs . > trivyfs.txt"
-                    },
-                    "Owasp Dependency Check": {
-                        dependencyCheck additionalArguments: '--scan ./ --disableYarnAudit --disableNodeAudit --nvdApiKey   7BA36ED4-9794-F111-8371-0EBF96DE670D', odcInstallation: 'DC'
-                        dependencyCheckPublisher pattern: '**/dependency-check-report.xml'
-                    },
-                    "OPA Conftest": {
-                        sh 'docker run --rm -v $(pwd):/project openpolicyagent/conftest test --policy opa-k8s-security.rego k8s_deployment_service.yaml'
+
+        // =========================================================
+        // 6. FILE SYSTEM / DEPENDENCY / OPA SCANS
+        // =========================================================
+        stage('TRIVY FS / OWASP / OPA Scans') {
+            parallel {
+
+                stage('Trivy FS Scan') {
+                    steps {
+                        sh '''
+                            echo "=== Trivy File System Scan ==="
+                            trivy fs . > trivyfs.txt
+                        '''
                     }
-                )
+                }
+
+                stage('OWASP Dependency Check') {
+                    steps {
+                        dependencyCheck(
+                            additionalArguments: '--scan ./ --disableYarnAudit --disableNodeAudit',
+                            odcInstallation: 'DC'
+                        )
+
+                        dependencyCheckPublisher(
+                            pattern: '**/dependency-check-report.xml'
+                        )
+                    }
+                }
+
+                stage('OPA Conftest') {
+                    steps {
+                        sh '''
+                            echo "=== OPA Conftest Scan ==="
+
+                            docker run --rm \
+                                -v "$(pwd):/project" \
+                                openpolicyagent/conftest \
+                                test \
+                                --policy opa-k8s-security.rego \
+                                k8s_deployment_service.yaml
+                        '''
+                    }
+                }
             }
         }
+
+        // =========================================================
+        // 7. DOCKER BUILD & PUSH
+        // =========================================================
         stage('Docker Build & Push') {
             steps {
                 withCredentials([
@@ -65,83 +129,154 @@ pipeline {
                         passwordVariable: 'DOCKER_PASSWORD'
                     )
                 ]) {
+
                     sh '''
-                echo "$DOCKER_PASSWORD" | docker login \
-                    --username "$DOCKER_USER" \
-                    --password-stdin
+                        echo "$DOCKER_PASSWORD" | docker login \
+                            --username "$DOCKER_USER" \
+                            --password-stdin
 
-                docker build -t $imageName .
-                docker push $imageName
+                        echo "=== Docker Build ==="
+                        echo "Image: $IMAGE_NAME"
 
-                docker logout
-            '''
+                        docker build -t "$IMAGE_NAME" .
+
+                        echo "=== Docker Push ==="
+                        docker push "$IMAGE_NAME"
+
+                        docker logout
+                    '''
                 }
             }
         }
-        stage('kube-scan && TRIVY image Scan') {
-            steps {
-                parallel(
-                    stage('Check Files') {
-                        steps {
-                            sh '''
-            pwd
-            ls -la
-            find . -name "trivy-k8s-scan.sh" -type f
-        '''
-                        }
-                    }
-                    "trivy-image-scan": {
+
+        // =========================================================
+        // 8. IMAGE / KUBERNETES SECURITY SCANS
+        // =========================================================
+        stage('Security Scans - Image / Kubernetes') {
+            parallel {
+
+                stage('Trivy Image Scan') {
+                    steps {
                         sh '''
-            chmod +x trivy-k8s-scan.sh
-            bash trivy-k8s-scan.sh
-        '''
-                    },
-                    "kubesec.io - scan": {
-                        sh '''
-                    chmod +x kube-scan.sh
-                    ./kube-scan.sh
-                '''
+                            echo "=== Trivy Image Scan ==="
+
+                            trivy image "$IMAGE_NAME" > trivyimage.txt
+                        '''
                     }
-                )
+                }
+
+                stage('Trivy Kubernetes Scan') {
+                    steps {
+                        sh '''
+                            echo "=== Trivy Kubernetes Scan ==="
+
+                            chmod +x trivy-k8s-scan.sh
+                            bash ./trivy-k8s-scan.sh
+                        '''
+                    }
+                }
+
+                stage('KubeSec Scan') {
+                    steps {
+                        sh '''
+                            echo "=== KubeSec Scan ==="
+
+                            chmod +x kube-scan.sh
+                            bash ./kube-scan.sh
+                        '''
+                    }
+                }
             }
         }
+
+        // =========================================================
+        // 9. EKS AUTHENTICATION
+        // =========================================================
         stage('EKS Authentication') {
             steps {
                 sh '''
-                    aws eks update-kubeconfig --name $CLUSTER_NAME --region $AWS_DEFAULT_REGION
+                    echo "=== Updating EKS kubeconfig ==="
 
-                    echo "=== Test EKS ==="
+                    aws eks update-kubeconfig \
+                        --name "$CLUSTER_NAME" \
+                        --region "$AWS_DEFAULT_REGION"
+
+                    echo "=== AWS Identity ==="
+                    aws sts get-caller-identity
+
+                    echo "=== Test EKS Connectivity ==="
                     kubectl get nodes
 
-                    echo "=== Test Authorization ==="
+                    echo "=== Test Kubernetes Authorization ==="
                     kubectl auth can-i get pods --all-namespaces
                 '''
             }
         }
+
+        // =========================================================
+        // 10. UPDATE IMAGE & DEPLOY
+        // =========================================================
         stage('Deploy to EKS - Dev') {
             steps {
                 sh '''
-                    aws eks update-kubeconfig --name $CLUSTER_NAME --region $AWS_DEFAULT_REGION
+                    echo "=== Updating Kubernetes Image ==="
 
-                    echo "=== AWS Identity ==="
-                    aws sts get-caller-identity
-                    sh "sed -i 's#replace#sarvjeet908/devsecops-image:${BUILD_NUMBER}#g' k8s_deployment_service.yaml"
-                    echo "=== Deploy ==="
-                    kubectl apply -f k8s_deployment_service.yaml
+                    sed -i \
+                        "s#image: replace#image: $IMAGE_NAME#g" \
+                        k8s_deployment_service.yaml
+
+                    echo "=== Kubernetes Image ==="
+                    grep "image:" k8s_deployment_service.yaml
+
+                    echo "=== Deploying to EKS ==="
+
+                    kubectl apply \
+                        -f k8s_deployment_service.yaml
+
+                    echo "=== Deployment Status ==="
+
+                    kubectl get deployments
+                    kubectl get pods
                 '''
             }
         }
     }
+
+    // =============================================================
+    // POST ACTIONS
+    // =============================================================
     post {
+
         always {
-            junit 'target/surefire-reports/*.xml'
-            jacoco execPattern: 'target/jacoco.exec'
-            pitmutation mutationStatsFile: '**/target/pit-reports/**/mutations.xml'
-            dependencyCheckPublisher pattern: 'target/dependency-check-report.xml'
+
+            junit(
+                testResults: 'target/surefire-reports/*.xml',
+                allowEmptyResults: true
+            )
+
+            jacoco(
+                execPattern: 'target/jacoco.exec'
+            )
+
+            pitmutation(
+                mutationStatsFile: '**/target/pit-reports/**/mutations.xml'
+            )
+
+            dependencyCheckPublisher(
+                pattern: 'target/dependency-check-report.xml'
+            )
         }
-        // successs {
-        // }
-        // failure {
-        // }
+
+        success {
+            echo '========================================'
+            echo '   DEVSECOPS PIPELINE SUCCESS'
+            echo '========================================'
+        }
+
+        failure {
+            echo '========================================'
+            echo '   DEVSECOPS PIPELINE FAILED'
+            echo '========================================'
+        }
     }
 }
