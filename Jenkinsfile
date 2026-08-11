@@ -78,7 +78,7 @@ pipeline {
             steps {
                 parallel(
                     "trivy-image-scan": {
-                        sh "trivy image  $IMAGE_NAME:$IMAGE_TAG > trivyimage.txt"
+                        sh "trivy-k8s-scan.sh"
                     },
                     "kubesec.io - scan": {
                         sh '''
