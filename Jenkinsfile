@@ -6,6 +6,11 @@ pipeline {
         imageName = "sarvjeet908/devsecops-image:${BUILD_NUMBER}"
     }
     stages {
+        stage('Checkout') {
+            steps {
+                checkout scm
+            }
+        }
         stage('Build Artifact') {
             steps {
                 sh 'mvn clean package -DskipTests=true'
@@ -76,8 +81,20 @@ pipeline {
         stage('kube-scan && TRIVY image Scan') {
             steps {
                 parallel(
+                    stage('Check Files') {
+                        steps {
+                            sh '''
+            pwd
+            ls -la
+            find . -name "trivy-k8s-scan.sh" -type f
+        '''
+                        }
+                    }
                     "trivy-image-scan": {
-                        sh "trivy-k8s-scan.sh"
+                        sh '''
+            chmod +x trivy-k8s-scan.sh
+            bash trivy-k8s-scan.sh
+        '''
                     },
                     "kubesec.io - scan": {
                         sh '''
