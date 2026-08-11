@@ -1,19 +1,38 @@
-response=$(curl -s "$applicationURL:$PORT$applicationURI" | tr -d '\r\n')
-http_code=$(curl -s -o /dev/null -w "%{http_code}" "$applicationURL:$PORT$applicationURI")
+#!/bin/bash
 
-echo "Response: [$response]"
-echo "HTTP Code: [$http_code]"
+sleep 10
 
-if [[ "$response" == "100" ]]; then
-    echo "Increment Test Passed"
+PORT=$(kubectl -n default get svc "$serviceName" -o json | jq -r '.spec.ports[0].nodePort')
+
+echo "PORT: $PORT"
+echo "URL: $applicationURL:$PORT$applicationURI"
+
+if [[ -n "$PORT" ]]; then
+
+    result=$(curl -s -w "\n%{http_code}" \
+        "$applicationURL:$PORT$applicationURI")
+
+    response=$(echo "$result" | head -n1)
+    http_code=$(echo "$result" | tail -n1)
+
+    echo "Response: [$response]"
+    echo "HTTP Code: [$http_code]"
+
+    if [[ "$response" == "100" ]]; then
+        echo "Increment Test Passed"
+    else
+        echo "Increment Test Failed"
+        exit 1
+    fi
+
+    if [[ "$http_code" == "200" ]]; then
+        echo "HTTP Status Code Test Passed"
+    else
+        echo "HTTP Status code is not 200"
+        exit 1
+    fi
+
 else
-    echo "Increment Test Failed"
-    exit 1
-fi
-
-if [[ "$http_code" == "200" ]]; then
-    echo "HTTP Status Code Test Passed"
-else
-    echo "HTTP Status code is not 200"
+    echo "The Service does not have a NodePort"
     exit 1
 fi
