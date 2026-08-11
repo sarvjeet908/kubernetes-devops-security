@@ -74,16 +74,18 @@ pipeline {
         }
         stage('kube-scan && TRIVY image Scan') {
             steps {
-                parallel (
-                "trivy-image-scan" : {
-                    sh "trivy image sarvjeet908/rammayan:5 > trivyimage.txt"
-                },
-                "kubesec.io - scan" : {
-                    sh "kube-scan.sh"
-                }
-            )
+                parallel(
+                    "trivy-image-scan": {
+                        sh "trivy image sarvjeet908/rammayan:5 > trivyimage.txt"
+                    },
+                    "kubesec.io - scan": {
+                        sh '''
+                    chmod +x kube-scan.sh
+                    ./kube-scan.sh
+                '''
+                    }
+                )
             }
-            
         }
         stage('EKS Authentication') {
             steps {
@@ -119,7 +121,7 @@ pipeline {
             pitmutation mutationStatsFile: '**/target/pit-reports/**/mutations.xml'
             dependencyCheckPublisher pattern: 'target/dependency-check-report.xml'
         }
-        // success {
+        // successs {
         // }
         // failure {
         // }
