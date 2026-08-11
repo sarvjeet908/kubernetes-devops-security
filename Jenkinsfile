@@ -9,7 +9,7 @@ pipeline {
         deploymentName = "devsecops"
         containerName = "devsecops-container"
         serviceName = "devsecops-svc"
-        applicationURL = "http://54.151.74.249/"
+        applicationURL = "http://54.151.74.249"
         applicationURI = "/increment/99"
     }
 
