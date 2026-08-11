@@ -10,7 +10,7 @@ pipeline {
         containerName = "devsecops-container"
         serviceName = "devsecops-svc"
         applicationURL = "http://54.151.74.249"
-        applicationURI = "/increment/99"
+        applicationURI = "increment/99"
     }
 
     stages {
