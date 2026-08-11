@@ -43,12 +43,7 @@ pipeline {
 
        
 
-         stage('OWASP FS SCAN') {
-            steps {
-                dependencyCheck additionalArguments: '--scan ./ --disableYarnAudit --disableNodeAudit --nvdApiKey   7BA36ED4-9794-F111-8371-0EBF96DE670D', odcInstallation: 'DC'
-                dependencyCheckPublisher pattern: '**/dependency-check-report.xml'
-           }
-        }
+         
 
          stage('TRIVY FS SCAN and opa-conf-test-scan') {
             steps {
@@ -56,6 +51,10 @@ pipeline {
                     
                     "TRIVY FS SCAN": {
                         sh "trivy fs . > trivyfs.txt"
+                    },
+                    "Owasp Dependency Check": {
+                        dependencyCheck additionalArguments: '--scan ./ --disableYarnAudit --disableNodeAudit --nvdApiKey   7BA36ED4-9794-F111-8371-0EBF96DE670D', odcInstallation: 'DC'
+                dependencyCheckPublisher pattern: '**/dependency-check-report.xml'
                     },
                     "OPA Conftest": {
                         sh 'docker run --rm -v $(pwd):/project openpolicyagent/conftest test --policy opa-k8s-security.rego k8s_deployment_service.yaml'
