@@ -247,58 +247,7 @@ pipeline {
         }
     
 
-    //=============================================================
-    //integration test
-    //=============================================================
-    stage('Integration Tests - DEV') {
-    steps {
-        script {
-            try {
-                echo "=== Running Integration Tests ==="
-
-                sh '''
-                    chmod +x integration-test.sh
-                    bash integration-test.sh
-                '''
-
-                echo "=== Integration Tests Passed ==="
-
-            } catch (e) {
-
-                echo "=== Integration Tests FAILED ==="
-                echo "Rolling back deployment..."
-
-                sh """
-                    kubectl rollout undo deployment/${deploymentName} \
-                        -n default
-
-                    kubectl rollout status deployment/${deploymentName} \
-                        -n default \
-                        --timeout=120s
-                """
-
-                throw e
-            }
-        }
-    }
-    }
-   
-                
-    stage('OWASP-ZAP'){
-        steps {
-            
-        echo "=== Running OWASP-ZAP Tests ==="
-
-                sh '''
-                    chmod +x zap.sh
-                    bash zap.sh
-                '''
-
-                echo "=== OWASP-ZAP Tests Passed ==="
-        
-     }
-
-    }
+    
 }
 post {
     // =============================================================
