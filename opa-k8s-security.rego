@@ -2,7 +2,7 @@ package main
 
 deny contains msg if {
   input.kind == "Service"
-  not input.spec.type == "ClusterIP"
+  not input.spec.type == "NodePort"
   msg := "Service type should be NodePort"
 }
 
