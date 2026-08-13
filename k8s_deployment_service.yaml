@@ -55,7 +55,7 @@ spec:
     targetPort: 8080
   selector:
     app: devsecops
-  type: ClusterIP
+  type: NodePort
 ######################### update existing k8s_deployment_service.yaml #########################
 
 
