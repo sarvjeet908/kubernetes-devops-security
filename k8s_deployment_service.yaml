@@ -27,9 +27,20 @@ spec:
         - mountPath: /tmp
           name: vol
         securityContext:
+          capabilities:
+            drop:
+              - NET_RAW
           runAsNonRoot: true
           runAsUser: 100
           readOnlyRootFilesystem: true
+          allowPrivilegeEscalation: false
+        resources:
+          requests:
+            memory: "256Mi"
+            cpu: "200m"
+          limits:
+            memory: "512Mi"
+            cpu: "500m"
 ---
 apiVersion: v1
 kind: Service
@@ -44,7 +55,7 @@ spec:
     targetPort: 8080
   selector:
     app: devsecops
-  type: NodePort
+  type: ClusterIP
 ######################### update existing k8s_deployment_service.yaml #########################
 
 
