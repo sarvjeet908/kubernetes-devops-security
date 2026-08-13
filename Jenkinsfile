@@ -5,7 +5,7 @@ pipeline {
     environment {
         AWS_DEFAULT_REGION = 'us-west-1'
         CLUSTER_NAME       = 'my-eks-cluster'
-        IMAGE_NAME         = "sarvjeet908/devsecops-image:${BUILD_NUMBER}"
+        IMAGE_NAME         = "newapp/devsecops-image:${BUILD_NUMBER}"
         deploymentName = "devsecops"
         containerName = "devsecops-container"
         serviceName = "devsecops-svc"
